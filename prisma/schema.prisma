@@ -1,0 +1,376 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  Id              Int               @id @default(autoincrement())
+  Cpf_Cnpj        String            @db.NVarChar(15)
+  Name            String            @db.NVarChar(100)
+  Email           String            @db.NVarChar(100)
+  Password        String            @db.NVarChar(50)
+  Status          Boolean
+  Id_Profile      Int
+  Dt_Insert       DateTime          @default(now(), map: "tb_User_Dt_Insert_df")
+  Id_Client       Int
+  Client          Client            @relation(fields: [Id_Client], references: [Id])
+  Profile         Profile           @relation(fields: [Id_Profile], references: [Id])
+  ClientUser      ClientUser[]
+  tb_CustomerUser tb_CustomerUser[] @relation("tb_CustomerUserTotb_User")
+  Hist_Sales      Hist_Sale[]
+
+  @@map("tb_User")
+}
+
+model Profile {
+  Id   Int    @id @default(autoincrement())
+  Name String @db.NVarChar(100)
+  User User[]
+
+  @@map("tb_Profile")
+}
+
+model ClientUser {
+  Id        Int    @id @default(autoincrement())
+  Id_Client Int
+  Id_User   Int
+  Client    Client @relation(fields: [Id_Client], references: [Id], onUpdate: NoAction)
+  User      User   @relation(fields: [Id_User], references: [Id], onUpdate: NoAction)
+
+  @@map("tb_ClientUser")
+}
+
+model Client {
+  Id                          Int                           @id @default(autoincrement())
+  Id_Parent                   Int
+  Name                        String                        @db.NVarChar(100)
+  Initials                    String?                       @db.NVarChar(3)
+  Cnpj                        String?                       @db.NVarChar(15)
+  ClientUser                  ClientUser[]
+  tb_Customer_Car             tb_Customer_Car[]             @relation("tb_ClientTotb_Customer_Car")
+  Hist_Sales                  Hist_Sale[]
+  Hist_Services               Hist_Service[]
+  tb_Opportunity_Customer_Car tb_Opportunity_Customer_Car[] @relation("tb_ClientTotb_Opportunity_Customer_Car")
+  Users                       User[]
+
+  @@map("tb_Client")
+}
+
+model Category {
+  Id              Int               @id @default(autoincrement())
+  Description     String            @db.NVarChar(100)
+  Code            String            @db.NVarChar(50)
+  Score_Weight    Int?
+  tb_Customer_Car tb_Customer_Car[] @relation("tb_CategoryTotb_Customer_Car")
+
+  @@map("tb_Category")
+}
+
+model Service_Type {
+  Id           Int            @id @default(autoincrement())
+  Is_Revision  Boolean
+  Description  String         @db.NVarChar(150)
+  Hist_Service Hist_Service[]
+
+  @@map("tb_Service_Type")
+}
+
+model Hist_Sale {
+  Id                 Int             @id @default(autoincrement())
+  Id_User            Int
+  Cpf_Cnpj           String          @db.NVarChar(15)
+  Chassi             String          @db.NVarChar(20)
+  Id_Client          Int
+  Address            String?         @db.NVarChar(150)
+  Address_Compl      String?         @db.NVarChar(50)
+  Address_District   String?         @db.NVarChar(50)
+  Address_Number     Int?
+  Address_State      String?         @db.NVarChar(50)
+  Address_Zip_Code   String?         @db.NVarChar(20)
+  Brand              String?         @db.NVarChar(100)
+  Category           String?         @db.NVarChar(50)
+  Color              String?         @db.NVarChar(50)
+  Customer           String?         @db.NVarChar(150)
+  Doc_Invoice        String?         @db.NVarChar(50)
+  Doc_Invoice_Delete String?         @db.NVarChar(50)
+  Dt_Invoice         DateTime?
+  Email              String?         @db.NVarChar(50)
+  Family             String?         @db.NVarChar(50)
+  KM                 Int?
+  Model              String?         @db.NVarChar(50)
+  Payment_Type       String?         @db.NVarChar(50)
+  Phone_Cel          String?         @db.NVarChar(50)
+  Phone_Com          String?         @db.NVarChar(50)
+  Phone_Res          String?         @db.NVarChar(50)
+  Plate              String?         @db.NVarChar(50)
+  Purchase_Reason    String?         @db.NVarChar(100)
+  Renavam            String          @db.NVarChar(50)
+  Status_Delete      Boolean
+  Status_Sales       Boolean
+  Stock_Days         Int?
+  Tp_Mov_Fiscal      String?         @db.NVarChar(50)
+  Value_Purchase     Decimal?
+  Value_Sales        Decimal
+  Value_Sugested     Decimal?
+  Year_Fab           String?         @db.NVarChar(50)
+  Year_Mod           String?         @db.NVarChar(50)
+  Proposal           Int?
+  Financ_Value       Decimal?
+  Financ_Qt_Month    Decimal?
+  Financ_Value_Month Decimal?
+  Financ_Downpayment Decimal?
+  Financ_Interesting Decimal?
+  tb_Customer_Car    tb_Customer_Car @relation("tb_Customer_CarTotb_Hist_Sales", fields: [Chassi], references: [Chassi], onUpdate: NoAction)
+  tb_Customer        tb_Customer     @relation("tb_CustomerTotb_Hist_Sales", fields: [Cpf_Cnpj], references: [Cpf_Cnpj], onUpdate: NoAction)
+  Client             Client          @relation(fields: [Id_Client], references: [Id], onUpdate: NoAction)
+  Users              User            @relation(fields: [Id_User], references: [Id], onUpdate: NoAction)
+
+  @@map("tb_Hist_Sales")
+}
+
+model Hist_Service {
+  Id                  Int             @id @default(autoincrement())
+  Cpf_Cnpj            String          @db.NVarChar(15)
+  Chassi              String          @db.NVarChar(20)
+  Id_Client           Int
+  Category            String?         @db.NVarChar(100)
+  Color               String?         @db.NVarChar(50)
+  Consultant          String?         @db.NVarChar(100)
+  Doc_Invoice         String?         @db.NVarChar(100)
+  Dt_End              DateTime
+  Dt_Service          DateTime
+  Family              String?         @db.NVarChar(100)
+  KM                  Int?
+  KM_Dt               DateTime?
+  Model               String          @db.NVarChar(100)
+  Name                String          @db.NVarChar(100)
+  Num_Os              String?         @db.NVarChar(100)
+  Plate               String          @db.NVarChar(50)
+  Status              Boolean
+  Technical           String?         @db.NVarChar(150)
+  Value_Product       Decimal?
+  Value_Service       Decimal?
+  Value_Total         Decimal
+  Year_Fab            String?         @db.NVarChar(10)
+  Year_Mod            String?         @db.NVarChar(10)
+  Brand               String?         @db.NVarChar(100)
+  Os_Cod              String?         @db.NVarChar(50)
+  Os_Description      String?         @db.NVarChar(100)
+  Service_Description String?         @db.NVarChar(150)
+  Id_Service_Type     Int?
+  tb_Customer_Car     tb_Customer_Car @relation("tb_Customer_CarTotb_Hist_Services", fields: [Chassi], references: [Chassi], onUpdate: NoAction)
+  tb_Customer         tb_Customer     @relation("tb_CustomerTotb_Hist_Services", fields: [Cpf_Cnpj], references: [Cpf_Cnpj], onUpdate: NoAction)
+  Client              Client          @relation(fields: [Id_Client], references: [Id], onUpdate: NoAction)
+  Service_Type        Service_Type?   @relation(fields: [Id_Service_Type], references: [Id], onUpdate: NoAction)
+
+  @@map("tb_Hist_Services")
+}
+
+model Opportunity_Type {
+  Id                          Int                           @id @default(autoincrement())
+  Code                        String                        @db.NVarChar(5)
+  Description                 String                        @db.NVarChar(150)
+  Score_Weight                Int?
+  Client_Opportunity_Rules    Client_Opportunity_Rules[]
+  tb_Opportunity_Customer_Car tb_Opportunity_Customer_Car[] @relation("tb_Opportunity_Customer_CarTotb_Opportunity_Type")
+
+  @@map("tb_Opportunity_Type")
+}
+
+model Client_Opportunity_Rules {
+  Id                  Int              @id @default(autoincrement())
+  Id_Opportunity_Type Int
+  Value               Int
+  Opportunity_Type    Opportunity_Type @relation(fields: [Id_Opportunity_Type], references: [Id], onUpdate: NoAction)
+
+  @@map("tb_Client_Opportunity_Rules")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model hist_sales {
+  idempresa                 String? @db.NVarChar(Max)
+  idpessoavendedor          String? @db.NVarChar(Max)
+  datavenda                 String? @db.NVarChar(Max)
+  docfiscal                 String? @db.NVarChar(Max)
+  tipomovimento             String? @db.NVarChar(Max)
+  docfiscalentrada          String? @db.NVarChar(Max)
+  estadoveiculo             String? @db.NVarChar(Max)
+  diasestoque               String? @db.NVarChar(Max)
+  cpfoucnpj                 String? @db.NVarChar(Max)
+  pessoa                    String? @db.NVarChar(Max)
+  modelo                    String? @db.NVarChar(Max)
+  veiculomodelogrupo        String? @db.NVarChar(Max)
+  categoria                 String? @db.NVarChar(Max)
+  anofabr                   String? @db.NVarChar(Max)
+  anomod                    String? @db.NVarChar(Max)
+  cor                       String? @db.NVarChar(Max)
+  placa                     String? @db.NVarChar(Max)
+  quilometragem             String? @db.NVarChar(Max)
+  tipovenda                 String? @db.NVarChar(Max)
+  valortotaldocumentofiscal String? @db.NVarChar(Max)
+  proposta                  String? @db.NVarChar(Max)
+  valorfinanciamento        String? @db.NVarChar(Max)
+  valorjuros                String? @db.NVarChar(Max)
+  motivocompra              String? @db.NVarChar(Max)
+  chassi                    String? @db.NVarChar(Max)
+  renavam                   String? @db.NVarChar(Max)
+  valortotalcustocontabil   String? @db.NVarChar(Max)
+  valorsugeridofabrica      String? @db.NVarChar(Max)
+  marca                     String? @db.NVarChar(Max)
+  logradouro                String? @db.NVarChar(Max)
+  numero                    String? @db.NVarChar(Max)
+  complemento               String? @db.NVarChar(Max)
+  bairro                    String? @db.NVarChar(Max)
+  cep                       String? @db.NVarChar(Max)
+  municipiouf               String? @db.NVarChar(Max)
+  email                     String? @db.NVarChar(Max)
+  telefonecelular           String? @db.NVarChar(Max)
+  telefoneresidencial       String? @db.NVarChar(Max)
+  telefonecomercial         String? @db.NVarChar(Max)
+  datanascimentoouabertura  String? @db.NVarChar(Max)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model hist_services {
+  idempresa           String? @db.NVarChar(Max)
+  pessoaconsultor     String? @db.NVarChar(Max)
+  dataemissao         String? @db.NVarChar(Max)
+  datafechamento      String? @db.NVarChar(Max)
+  numero              String? @db.NVarChar(Max)
+  descricaonotafiscal String? @db.NVarChar(Max)
+  cpfproprietario     String? @db.NVarChar(Max)
+  proprietario        String? @db.NVarChar(Max)
+  modelo              String? @db.NVarChar(Max)
+  anofabricacao       String? @db.NVarChar(Max)
+  anomodelo           String? @db.NVarChar(Max)
+  cor                 String? @db.NVarChar(Max)
+  placa               String? @db.NVarChar(Max)
+  chassi              String? @db.NVarChar(Max)
+  ostipo              String? @db.NVarChar(Max)
+  tiposervico         String? @db.NVarChar(Max)
+  descricaoitem       String? @db.NVarChar(Max)
+  valortotal          String? @db.NVarChar(Max)
+  tecnico             String? @db.NVarChar(Max)
+  quilometragem       String? @db.NVarChar(Max)
+
+  @@ignore
+}
+
+model tb_Customer {
+  Cpf_Cnpj         String            @id(map: "tb_Costumer_pkey") @db.NVarChar(15)
+  Name             String            @db.NVarChar(150)
+  Address          String?           @db.NVarChar(150)
+  Address_Num      String?           @db.NVarChar(30)
+  Address_Compl    String?           @db.NVarChar(50)
+  Address_District String?           @db.NVarChar(50)
+  Address_Zipcode  String?           @db.NVarChar(12)
+  Address_Munic    String?           @db.NVarChar(50)
+  Address_State    String?           @db.NVarChar(2)
+  Email            String?           @db.NVarChar(100)
+  Phone_Cel        String?           @db.NVarChar(20)
+  Phone_Com        String?           @db.NVarChar(20)
+  Phone_Res        String?           @db.NVarChar(20)
+  Dt_Birthday      DateTime?
+  Dt_Insert        DateTime          @default(now(), map: "tb_Costumer_Dt_Insert_df")
+  Dt_Update        DateTime          @default(now(), map: "DF_tb_Customer_Dt_Update")
+  Score            Int?
+  Status           Boolean?
+  Personal_Type    String?           @db.Char(1)
+  tb_Customer_Car  tb_Customer_Car[]
+  tb_CustomerUser  tb_CustomerUser[]
+  tb_Hist_Sales    Hist_Sale[]       @relation("tb_CustomerTotb_Hist_Sales")
+  tb_Hist_Services Hist_Service[]    @relation("tb_CustomerTotb_Hist_Services")
+}
+
+model tb_Customer_Car {
+  Chassi                      String                        @id(map: "tb_Costumer_Car_pkey") @db.NVarChar(20)
+  Name                        String?                       @db.NVarChar(100)
+  Cod_Internal                String?                       @db.NVarChar(10)
+  Plate                       String                        @db.NVarChar(50)
+  Model                       String?                       @db.NVarChar(200)
+  Year_Fab                    Int?
+  Year_Mod                    Int?
+  Color                       String?                       @db.NVarChar(50)
+  KM                          Int?
+  KM_Dt                       DateTime?                     @db.Date
+  Renavam                     String?                       @db.NVarChar(50)
+  Dt_Sales                    DateTime?                     @db.Date
+  Dt_Warranty_Start           DateTime?                     @db.Date
+  Dt_Warranty_End             DateTime?                     @db.Date
+  Value_Purchase              Decimal?                      @db.Decimal(18, 2)
+  Brand                       String?                       @db.NVarChar(50)
+  Family                      String?                       @db.NVarChar(50)
+  Cpf_Cnpj                    String                        @db.NVarChar(15)
+  Id_Client                   Int
+  Id_Category                 Int
+  Dt_Insert                   DateTime                      @default(now(), map: "DF_tb_Customer_Car_Dt_Insert")
+  Dt_Update                   DateTime                      @default(now(), map: "DF_tb_Customer_Car_Dt_Update")
+  tb_Customer                 tb_Customer                   @relation(fields: [Cpf_Cnpj], references: [Cpf_Cnpj], onUpdate: NoAction, map: "tb_Costumer_Car_Cpf_Cnpj_fkey")
+  tb_Category                 Category                      @relation("tb_CategoryTotb_Customer_Car", fields: [Id_Category], references: [Id], onUpdate: NoAction, map: "tb_Costumer_Car_Id_Category_fkey")
+  tb_Client                   Client                        @relation("tb_ClientTotb_Customer_Car", fields: [Id_Client], references: [Id], onUpdate: NoAction, map: "tb_Costumer_Car_Id_Client_fkey")
+  tb_Hist_Sales               Hist_Sale[]                   @relation("tb_Customer_CarTotb_Hist_Sales")
+  tb_Hist_Services            Hist_Service[]                @relation("tb_Customer_CarTotb_Hist_Services")
+  tb_Opportunity_Customer_Car tb_Opportunity_Customer_Car[]
+}
+
+model tb_CustomerUser {
+  Id          Int         @id(map: "tb_CostumerUser_pkey") @default(autoincrement())
+  Cpf_Cnpj    String      @db.NVarChar(15)
+  Id_User     Int
+  tb_Customer tb_Customer @relation(fields: [Cpf_Cnpj], references: [Cpf_Cnpj], onUpdate: NoAction, map: "tb_CostumerUser_Cpf_Cnpj_fkey")
+  tb_User     User        @relation("tb_CustomerUserTotb_User", fields: [Id_User], references: [Id], onUpdate: NoAction, map: "tb_CostumerUser_Id_User_fkey")
+}
+
+model tb_Opportunity_Customer_Car {
+  Id                  Int              @id(map: "tb_Opportunity_Costumer_Car_pkey") @default(autoincrement())
+  Chassi              String           @db.NVarChar(20)
+  Id_Client           Int
+  Id_Opportunity_Type Int
+  Enabled             Boolean
+  tb_Customer_Car     tb_Customer_Car  @relation(fields: [Chassi], references: [Chassi], onUpdate: NoAction, map: "tb_Opportunity_Costumer_Car_Chassi_fkey")
+  tb_Client           Client           @relation("tb_ClientTotb_Opportunity_Customer_Car", fields: [Id_Client], references: [Id], onUpdate: NoAction, map: "tb_Opportunity_Costumer_Car_Id_Client_fkey")
+  tb_Opportunity_Type Opportunity_Type @relation("tb_Opportunity_Customer_CarTotb_Opportunity_Type", fields: [Id_Opportunity_Type], references: [Id], onUpdate: NoAction, map: "tb_Opportunity_Costumer_Car_Id_Opportunity_Type_fkey")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model veic_cliente {
+  C_digo                       String? @map("Código") @db.NVarChar(Max)
+  Ativo                        String? @db.NVarChar(Max)
+  Chassi                       String? @db.NVarChar(Max)
+  Placa                        String? @db.NVarChar(Max)
+  Propriet_rio                 String? @map("Proprietário") @db.NVarChar(Max)
+  Modelo                       String? @db.NVarChar(Max)
+  Ano_de_fabrica__o            String? @map("Ano_de_fabricação") @db.NVarChar(Max)
+  Ano_do_modelo                String? @db.NVarChar(Max)
+  C_R_L_V                      String? @db.NVarChar(Max)
+  C_digo_Revendedora           String? @map("Código_Revendedora") @db.NVarChar(Max)
+  Cor                          String? @db.NVarChar(Max)
+  Data_da_venda                String? @db.NVarChar(Max)
+  Data_final_garantia          String? @db.NVarChar(Max)
+  Data_inicial_garantia        String? @db.NVarChar(Max)
+  Eixo_Anterior                String? @db.NVarChar(Max)
+  Eixo_Posterior               String? @db.NVarChar(Max)
+  Frota                        String? @db.NVarChar(Max)
+  N_mero_da_bateria            String? @map("Número_da_bateria") @db.NVarChar(Max)
+  N_mero_do_cambio             String? @map("Número_do_cambio") @db.NVarChar(Max)
+  N_mero_do_motor              String? @map("Número_do_motor") @db.NVarChar(Max)
+  Renavam                      String? @db.NVarChar(Max)
+  Revendedora                  String? @db.NVarChar(Max)
+  Tipo_de_Veiculo              String? @db.NVarChar(Max)
+  lt_concession_ria_executante String? @map("Últ_concessionária_executante") @db.NVarChar(Max)
+  Valor_do_bem                 String? @db.NVarChar(Max)
+  CPF_CNPJ_Propriet_rio        String? @map("CPF_CNPJ_Proprietário") @db.NVarChar(Max)
+  ltima_Data_KM_Hora           String? @map("Última_Data_KM_Hora") @db.NVarChar(Max)
+  ltimo_KM_Hora                String? @map("Último_KM_Hora") @db.NVarChar(Max)
+  N__Contrato_Frotista         String? @map("Nº_Contrato_Frotista") @db.NVarChar(Max)
+  Equipe_Atendimento_Frotista  String? @db.NVarChar(Max)
+
+  @@ignore
+}
